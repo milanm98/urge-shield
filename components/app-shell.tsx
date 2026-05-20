@@ -3,6 +3,7 @@ import { LogOut, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/sign-out-button";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { BrandMark } from "@/components/brand-mark";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const { isConfigured, allowLocalPreview } = getSupabaseConfig();
@@ -14,7 +15,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <header className="border-b border-line bg-paper/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/dashboard" className="text-lg font-black text-ink">
+          <Link href="/dashboard" className="inline-flex items-center gap-3 text-lg font-black text-ink">
+            <BrandMark className="h-9 w-9" />
             Steady Path
           </Link>
           <nav className="flex items-center gap-2">

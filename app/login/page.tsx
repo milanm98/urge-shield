@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { LoginPanel } from "@/components/login-panel";
 
 export default function LoginPage() {
@@ -6,9 +7,12 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <section className="w-full max-w-md">
         <div className="mb-8">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-teal">
-            Steady Path
-          </p>
+          <div className="mb-4 flex items-center gap-3">
+            <BrandMark />
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-teal">
+              Steady Path
+            </p>
+          </div>
           <h1 className="text-4xl font-bold leading-tight text-ink">
             Help in reach when a gambling urge hits.
           </h1>

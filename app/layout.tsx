@@ -4,7 +4,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Steady Path",
   description: "A no-form support toolbox for getting through gambling urges.",
-  manifest: "/manifest.webmanifest"
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/icon.svg"
+  }
 };
 
 export const viewport: Viewport = {
