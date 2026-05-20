@@ -1,0 +1,17 @@
+{
+  "name": "Steady Path",
+  "short_name": "Steady",
+  "description": "A no-form support toolbox for gambling urges.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f6faf8",
+  "theme_color": "#eef6f3",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
