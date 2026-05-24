@@ -1,6 +1,19 @@
 import { TrustedContacts } from "@/components/trusted-contacts";
+import { createClient } from "@/lib/supabase/server";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+  const { data: contacts } = user
+    ? await supabase
+        .from("trusted_contacts")
+        .select("id,name,phone,email")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+
   return (
     <div className="space-y-6">
       <div>
@@ -10,13 +23,13 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <TrustedContacts />
+      <TrustedContacts contacts={contacts ?? []} />
 
       <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="text-xl font-black text-ink">Privacy and data</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
-          V1 stores contact shortcuts on this device. Supabase tables are ready for account-level
-          saved pins, favorites, contacts, urge events, and progress once a project is connected.
+          Trusted contacts and pinned resources are saved to your account so they can follow you
+          across devices. Keep only shortcuts that feel useful.
         </p>
       </section>
     </div>

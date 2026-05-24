@@ -1,32 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Mail, Phone, Plus, Trash2 } from "lucide-react";
+import { addTrustedContact, deleteTrustedContact } from "@/app/actions";
 
 type Contact = {
   id: string;
   name: string;
-  phone?: string;
-  email?: string;
+  phone: string | null;
+  email: string | null;
 };
 
-const storageKey = "steady-path-trusted-contacts";
-
-function readContacts(): Contact[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    return JSON.parse(window.localStorage.getItem(storageKey) ?? "[]") as Contact[];
-  } catch {
-    return [];
-  }
-}
-
-export function TrustedContacts() {
-  const [contacts, setContacts] = useState<Contact[]>(readContacts);
+export function TrustedContacts({ contacts }: { contacts: Contact[] }) {
   const [isAdding, setIsAdding] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -39,26 +27,30 @@ export function TrustedContacts() {
     []
   );
 
-  function persist(nextContacts: Contact[]) {
-    setContacts(nextContacts);
-    window.localStorage.setItem(storageKey, JSON.stringify(nextContacts));
-  }
-
   function addContact(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    persist([
-      ...contacts,
-      {
-        id: crypto.randomUUID(),
-        name,
-        phone: phone || undefined,
-        email: email || undefined
+    const formData = new FormData(event.currentTarget);
+    setMessage(null);
+
+    startTransition(async () => {
+      const result = await addTrustedContact(formData);
+      setMessage(result.message);
+
+      if (result.ok) {
+        setName("");
+        setPhone("");
+        setEmail("");
+        setIsAdding(false);
       }
-    ]);
-    setName("");
-    setPhone("");
-    setEmail("");
-    setIsAdding(false);
+    });
+  }
+
+  function removeContact(contactId: string) {
+    setMessage(null);
+    startTransition(async () => {
+      const result = await deleteTrustedContact(contactId);
+      setMessage(result.message);
+    });
   }
 
   return (
@@ -83,6 +75,7 @@ export function TrustedContacts() {
       {isAdding ? (
         <form onSubmit={addContact} className="mt-5 grid gap-3 rounded-md bg-mist p-4 sm:grid-cols-3">
           <input
+            name="name"
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -90,12 +83,14 @@ export function TrustedContacts() {
             className="min-h-11 rounded-md border border-line bg-white px-3"
           />
           <input
+            name="phone"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="Phone"
             className="min-h-11 rounded-md border border-line bg-white px-3"
           />
           <input
+            name="email"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -104,11 +99,18 @@ export function TrustedContacts() {
           />
           <button
             type="submit"
-            className="min-h-11 rounded-md bg-forest px-3 text-sm font-bold text-white sm:col-span-3"
+            disabled={isPending}
+            className="min-h-11 rounded-md bg-forest px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-3"
           >
-            Save contact
+            {isPending ? "Saving..." : "Save contact"}
           </button>
         </form>
+      ) : null}
+
+      {message ? (
+        <p className="mt-4 rounded-md bg-mist px-3 py-2 text-sm leading-6 text-forest" aria-live="polite">
+          {message}
+        </p>
       ) : null}
 
       <div className="mt-5 grid gap-3">
@@ -147,8 +149,9 @@ export function TrustedContacts() {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => persist(contacts.filter((item) => item.id !== contact.id))}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-line text-clay hover:bg-clay/10"
+                  onClick={() => removeContact(contact.id)}
+                  disabled={isPending}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-line text-clay hover:bg-clay/10 disabled:cursor-not-allowed disabled:opacity-60"
                   aria-label={`Remove ${contact.name}`}
                 >
                   <Trash2 size={18} />

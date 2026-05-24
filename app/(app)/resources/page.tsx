@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ExternalLink, Pin } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { PinResourceButton } from "@/components/pin-resource-button";
 import { filters, resources, type ResourceFilter } from "@/content/resources";
+import { createClient } from "@/lib/supabase/server";
 
 function isFilter(value: string | null): value is ResourceFilter {
   return filters.some((filter) => filter.id === value);
@@ -14,6 +16,14 @@ export default async function ResourcesPage({
   const params = await searchParams;
   const activeFilter = isFilter(params.filter ?? null) ? params.filter : "urgent";
   const visibleResources = resources.filter((resource) => resource.filter === activeFilter);
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+  const { data: pinnedRows } = user
+    ? await supabase.from("pinned_resources").select("resource_id").eq("user_id", user.id)
+    : { data: [] };
+  const pinnedResourceIds = new Set((pinnedRows ?? []).map((row) => row.resource_id));
 
   return (
     <div className="space-y-6">
@@ -51,14 +61,11 @@ export default async function ResourcesPage({
                 </p>
                 <h2 className="mt-2 text-xl font-black text-ink">{resource.title}</h2>
               </div>
-              <button
-                type="button"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-line bg-white text-muted"
-                aria-label={`Pin ${resource.title}`}
-                title="Pin resource"
-              >
-                <Pin size={18} aria-hidden="true" />
-              </button>
+              <PinResourceButton
+                resourceId={resource.id}
+                resourceTitle={resource.title}
+                initialPinned={pinnedResourceIds.has(resource.id)}
+              />
             </div>
             <p className="mt-3 text-sm leading-6 text-muted">{resource.description}</p>
             <a
